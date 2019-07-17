@@ -1,10 +1,11 @@
 import random
 import logging
-import requests
 from telegram.ext import Updater
 from telegram.ext import MessageHandler, Filters
 from telegram.ext import CommandHandler
 
+word_list = open('../dict/word_list', encoding='utf-8')
+WORDS = word_list.read().splitlines()
 word = ''
 TOKEN = '827159316:AAEcAFng9sYVQHyKcPvzNeoKWUBaCAQo_Bs'
 HOST = '54.37.21.29'
@@ -17,45 +18,31 @@ logging.basicConfig(level=logging.DEBUG,
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-updater = Updater(token=TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
+updater = Updater(token=TOKEN, request_kwargs=REQUEST_KWARGS)
 dispatcher = updater.dispatcher
 
 
 def start(update, context):
     global word
-    word_site = "https://raw.githubusercontent.com/hingston/russian/master/10000-russian-words.txt"
-    response = requests.get(word_site)
-    WORDS = response.content.splitlines()
-    WORDS = [decode(x) for x in WORDS if len(decode(x)) == 4 and len(set(decode(x))) == len(decode(x))]
     word = random.choice(WORDS)
-    context.bot.send_message(chat_id=update.message.chat_id, text="Я загадал слово!")
+    update.send_message(chat_id=context.message.chat_id, text="Я загадал слово!")
 
 
 start_handler = CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
 
 
-def decode(string):
-    return string.decode('utf-8')
-
-
-def echo(update, context):
-    global word
-    message = update.message.text.lower()
+def echo(bot, context):
+    global word, WORDS
+    message = context.message.text.lower()
     if len(word) == 0:
-        context.bot.send_message(chat_id=update.message.chat_id, text="Чтобы начать игру введите команду /start")
-    elif len(message) != 4:
-        context.bot.send_message(chat_id=update.message.chat_id, text="В загаданном слове 4 буквы.")
-    elif len(set(message)) != len(message):
-        context.bot.send_message(chat_id=update.message.chat_id, text="В загаданном слове нет повторяющихся букв.")
+        bot.send_message(chat_id=context.message.chat_id, text="Чтобы начать игру введите команду /start")
+    elif message not in WORDS:
+        bot.send_message(chat_id=context.message.chat_id, text="В моей базе нет такого слова")
     elif word == message:
-        context.bot.send_message(chat_id=update.message.chat_id, text="Вы угадали!")
-        word_site = "https://raw.githubusercontent.com/hingston/russian/master/10000-russian-words.txt"
-        response = requests.get(word_site)
-        WORDS = response.content.splitlines()
-        WORDS = [decode(x) for x in WORDS if len(decode(x)) == 4 and len(set(decode(x))) == len(decode(x))]
+        bot.send_message(chat_id=context.message.chat_id, text="Вы угадали!")
         word = random.choice(WORDS)
-        context.bot.send_message(chat_id=update.message.chat_id, text="Я загадал слово!")
+        bot.send_message(chat_id=context.message.chat_id, text="Я загадал новое слово!")
     else:
         bull, cow = 0, 0
         for idx, item in enumerate(message):
@@ -64,7 +51,7 @@ def echo(update, context):
             if message[idx] in word:
                 cow += 1
 
-        context.bot.send_message(chat_id=update.message.chat_id, text="{}:{}".format(cow, bull))
+        bot.send_message(chat_id=context.message.chat_id, text="{}:{}".format(cow, bull))
 
 
 echo_handler = MessageHandler(Filters.text, echo)
