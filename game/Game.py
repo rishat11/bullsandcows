@@ -4,7 +4,7 @@ from telegram.ext import Updater
 from telegram.ext import MessageHandler, Filters
 from telegram.ext import CommandHandler
 
-word_list = open('../dict/word_list', encoding='utf-8')
+word_list = open('dict/word_list', encoding='utf-8')
 WORDS = word_list.read().splitlines()
 word = ''
 TOKEN = '827159316:AAEcAFng9sYVQHyKcPvzNeoKWUBaCAQo_Bs'
