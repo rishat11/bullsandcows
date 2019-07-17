@@ -1,1 +1,1 @@
-worker: python game/Game.py
+web: python game/Game.py
