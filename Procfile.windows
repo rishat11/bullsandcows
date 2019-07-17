@@ -1,1 +1,1 @@
-web: python game/Game.py
+worker: python main.py $PORT
